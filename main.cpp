@@ -207,15 +207,46 @@ unordered_map <string, function<void(const vector<string>&)>> commands;
 
     
     void executeTouch(const vector <string> & args){
-        
+        if (args.size() < 2) {
+            cout << "touch: missing file operand\n";
+            return; 
+        }
+
+        string filename = args[1];
+        int fd = open(filename.c_str(), O_CREAT | O_WRONLY, 0644);
+
+        if (fd == -1) {
+            perror("touch error");
+            return;
+        }
+
+        close(fd);
     }
     
     void executeRm(const vector <string> & args){
-        
+        if (args.size() < 2) {
+            cerr << "error: filename not provided" << endl;
+            return;
+        }
+
+        string filename = args[1];
+
+        if (unlink(filename.c_str()) == -1) {
+            perror("rm error");
+        }
     }
     
     void executeRmdir(const vector <string> & args){
+        if (args.size() < 2) {
+            cerr << "error: directory name not provided\n";
+            return; 
+        }
+
+        string dirname = args[1];
         
+        if (rmdir(dirname.c_str()) == -1) {
+            perror("rmdir error");
+        }
     }
     
     void executeMv(const vector <string> & args){
