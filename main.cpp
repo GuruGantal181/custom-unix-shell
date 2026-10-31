@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <fstream>
+#include <fcntl.h>
 
 using namespace std;
 
@@ -250,15 +252,66 @@ unordered_map <string, function<void(const vector<string>&)>> commands;
     }
     
     void executeMv(const vector <string> & args){
+        if (args.size() < 3) {
+            cerr << "mv: missing file operand\n";
+            return;
+        }
         
+        // rename() handles both renaming files and moving them 
+        // as long as they stay on the same filesystem
+        if (rename(args[1].c_str(), args[2].c_str()) != 0) {
+            perror("mv error");
+        }
     }
     
     void executeSafeRm(const vector <string> & args){
-        
+        if (args.size() < 2) {
+            cerr << "safe-rm: missing file operand\n";
+            return;
+        }
+
+        // Create a hidden .trash directory in the current folder
+        mkdir(".trash", 0777);
+
+        for (size_t i = 1; i < args.size(); ++i) {
+            string source = args[i];
+            
+            // Extract the base filename in case the user passed a path (e.g., folder/file.txt)
+            size_t pos = source.find_last_of('/');
+            string filename = (pos == string::npos) ? source : source.substr(pos + 1);
+            
+            string dest = ".trash/" + filename;
+
+            // Move the file instead of unlinking it
+            if (rename(source.c_str(), dest.c_str()) != 0) {
+                perror(("safe-rm error: " + source).c_str());
+            } else {
+                cout << source << " safely moved to .trash/\n";
+            }
+        }
     }
     
     void executeCat(const vector <string> & args){
-        
+        if (args.size() < 2) {
+            cerr << "cat: missing file operand\n";
+            return;
+        }
+
+        for (size_t i = 1; i < args.size(); ++i) {
+            ifstream file(args[i]);
+            
+            if (!file.is_open()) {
+                perror(("cat error: " + args[i]).c_str());
+                continue;
+            }
+
+            string line;
+            while (getline(file, line)) {
+                cout << line << '\n';
+            }
+            
+            file.close();
+        }
     }
     
     void executeHide(const vector <string> & args){
