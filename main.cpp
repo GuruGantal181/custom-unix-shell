@@ -369,7 +369,7 @@ unordered_map <string, function<void(const vector<string>&)>> commands;
             if(name == "." || name == ".."){
                 continue;
             }
-            string fullpath = ".trash" + name;
+            string fullpath = ".trash/" + name;
             unlink(fullpath.c_str());
         }
         closedir(dir);
@@ -396,6 +396,9 @@ unordered_map <string, function<void(const vector<string>&)>> commands;
     
     
     public:
+    UnixShell(){
+        setupCommands();
+    }
     void run(){
         while(true){
             cout << "user@unix-shell_$ ";
