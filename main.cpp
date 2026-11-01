@@ -210,19 +210,21 @@ unordered_map <string, function<void(const vector<string>&)>> commands;
     
     void executeTouch(const vector <string> & args){
         if (args.size() < 2) {
-            cout << "touch: missing file operand\n";
-            return; 
-        }
-
-        string filename = args[1];
-        int fd = open(filename.c_str(), O_CREAT | O_WRONLY, 0644);
-
-        if (fd == -1) {
-            perror("touch error");
+            cerr << "error: filename not provided" << endl;
             return;
         }
 
-        close(fd);
+        for (size_t i = 1; i < args.size(); ++i) {
+            // Create file or open for writing with standard permissions
+            int fd = open(args[i].c_str(), O_CREAT | O_WRONLY, 0644);
+        
+            if (fd == -1) {
+                perror(("touch error on " + args[i]).c_str());
+            } 
+            else {
+                close(fd); // Free system resources
+            }
+        }
     }
     
     void executeRm(const vector <string> & args){
@@ -231,10 +233,11 @@ unordered_map <string, function<void(const vector<string>&)>> commands;
             return;
         }
 
-        string filename = args[1];
-
-        if (unlink(filename.c_str()) == -1) {
-            perror("rm error");
+        for (size_t i = 1; i < args.size(); ++i) {
+        // unlink() deletes the file from the operating system
+            if (unlink(args[i].c_str()) == -1) {
+                perror(("rm error on " + args[i]).c_str());
+            }
         }
     }
     
@@ -244,10 +247,11 @@ unordered_map <string, function<void(const vector<string>&)>> commands;
             return; 
         }
 
-        string dirname = args[1];
-        
-        if (rmdir(dirname.c_str()) == -1) {
-            perror("rmdir error");
+        for (size_t i = 1; i < args.size(); ++i) {
+        // rmdir() removes the directory, but only if it is completely empty
+            if (rmdir(args[i].c_str()) == -1) {
+                perror(("rmdir error on " + args[i]).c_str());
+            }
         }
     }
     
