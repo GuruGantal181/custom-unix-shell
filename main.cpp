@@ -314,16 +314,67 @@ unordered_map <string, function<void(const vector<string>&)>> commands;
         }
     }
     
-    void executeHide(const vector <string> & args){
+    void executeHide(const vector<string> &args)
+    {
+        if (args.size() < 2)
+        {
+            cout << "hide: missing file operand\n";
+            return;
+        }
+        for (int i = 1; i < args.size(); i++)
+        {
+            string oldName = args[i];
+            if (oldName[0] == '.')
+            {
+                continue;
+            }
+            string newName = "." + oldName;
+            if(rename(oldName.c_str(), newName.c_str()) != 0){//IN built function of API of C and Linux that checks whether the name can be changed or not
+                perror("Hide Error");
+            }
+        }
+    }
+    
+   void executeUnhide(const vector<string> &args)
+    {
+        if(args.size() < 2){
+            cout << "Unhide: missing file name\n";
+            return;
+        }
+        for(int i=1;i < args.size();i++){
+            string oldName = args[i];
+            if(oldName[0] != '.'){// if already non hidden
+                continue;
+            }
+            string newName = oldName.substr(1) ;
 
+            if(rename(oldName.c_str(),newName.c_str())){
+                perror("Unhide error");
+            }
+        }
     }
     
-    void executeUnhide(const vector <string> & args){
-        
-    }
-    
-    void executePrune(const vector <string> & args){
-        
+   void executePrune(const vector<string> &args)
+    {
+        DIR* dir = opendir(".trash");
+        if(dir == nullptr){
+            perror("Prune: cannot open .trash");
+            return;
+        }
+        struct dirent* entry;
+
+        while((entry = readdir(dir)) != nullptr){
+            string name = entry->d_name;
+
+            if(name == "." || name == ".."){
+                continue;
+            }
+            string fullpath = ".trash" + name;
+            unlink(fullpath.c_str());
+        }
+        closedir(dir);
+
+        cout << "Trash pruned successfully\n" ;
     }
     
     vector<string> parseCommand(const string& command){
